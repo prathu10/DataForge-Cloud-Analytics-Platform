@@ -187,6 +187,9 @@ st.markdown(
         <div class="small-muted" style="margin-top:0.35rem;">
             Upload a CSV, explore business metrics, run SQL queries, inspect data quality, and export filtered results.
         </div>
+        <div class="small-muted" style="margin-top:0.35rem;">
+            Built by <strong>Prathamesh Sonawane</strong>
+        </div>
     </div>
     """,
     unsafe_allow_html=True,
@@ -388,6 +391,7 @@ with tab_charts:
                 x=region_col,
                 y=sales_col,
                 title="Total Sales by Region",
+                color_discrete_sequence=["#38bdf8"],
             )
             apply_plot_style(fig_region)
             fig_region.update_layout(xaxis_title="Region", yaxis_title="Sales")
@@ -403,6 +407,7 @@ with tab_charts:
                 x=category_col,
                 y=profit_col,
                 title="Total Profit by Category",
+                color_discrete_sequence=["#a78bfa"],
             )
             apply_plot_style(fig_category)
             fig_category.update_layout(xaxis_title="Category", yaxis_title="Profit")
@@ -427,6 +432,7 @@ with tab_charts:
                 markers=True,
             )
             apply_plot_style(fig_trend)
+            fig_trend.update_traces(line=dict(color="#22c55e", width=3), marker=dict(color="#22c55e", size=7))
             fig_trend.update_layout(xaxis_title="Date", yaxis_title="Sales")
             st.plotly_chart(fig_trend, use_container_width=True)
         else:
@@ -448,6 +454,7 @@ with tab_charts:
                 y=product_col,
                 orientation="h",
                 title="Top 10 Products / Sub-categories by Sales",
+                color_discrete_sequence=["#fb7185"],
             )
             apply_plot_style(fig_products)
             fig_products.update_layout(
@@ -509,6 +516,7 @@ with tab_quality:
             x="column",
             y="missing_count",
             title="Missing Values by Column",
+            color_discrete_sequence=["#f59e0b"],
         )
         apply_plot_style(fig_missing)
         fig_missing.update_layout(xaxis_title="Column", yaxis_title="Missing Values")
@@ -541,4 +549,4 @@ with tab_data:
 # Footer
 # -------------------------------------------------
 st.divider()
-st.caption("Built with Python • Streamlit • Plotly • SQL • PostgreSQL • Cloud Analytics")
+st.caption("Built with Python • Streamlit • Plotly • SQL • PostgreSQL • Cloud Analytics | Prathamesh Sonawane")
