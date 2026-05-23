@@ -12,6 +12,7 @@ st.set_page_config(
 
 st.title("Cloud Analytics Platform")
 st.markdown("Interactive analytics dashboard using Python, SQL, PostgreSQL, and Streamlit")
+st.caption("Cloud-hosted PostgreSQL analytics with interactive filters, SQL queries, and business insights.")
 
 # -----------------------------
 # Database connection
