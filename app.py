@@ -127,7 +127,7 @@ if uploaded_file is not None:
 
     c5, c6, _, _ = st.columns(4)
     c5.metric("Top Category", top_category)
-    c6.metric("Rows", f"{len(filtered_df):,}")
+    c6.metric("Filtered Rows", f"{len(filtered_df):,}")
 
     st.divider()
 
