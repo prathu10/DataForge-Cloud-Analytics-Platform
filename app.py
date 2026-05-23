@@ -1,5 +1,4 @@
 import os
-from io import StringIO
 
 import pandas as pd
 import plotly.express as px
@@ -17,78 +16,108 @@ st.set_page_config(
 )
 
 # -------------------------------------------------
-# Custom styling
+# Dark theme styling
 # -------------------------------------------------
 st.markdown(
     """
     <style>
         .stApp {
-            background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+            background: linear-gradient(180deg, #07111f 0%, #0f172a 50%, #111827 100%);
+            color: #e5e7eb;
         }
 
         .block-container {
-            padding-top: 1.5rem;
+            padding-top: 1.3rem;
             padding-bottom: 2rem;
         }
 
-        h1, h2, h3 {
-            letter-spacing: -0.02em;
+        h1, h2, h3, h4, h5, h6, p, label, span, div {
+            color: #e5e7eb;
         }
 
         .hero-card {
             padding: 1.2rem 1.4rem;
-            border-radius: 18px;
-            background: rgba(255, 255, 255, 0.78);
-            border: 1px solid rgba(148, 163, 184, 0.25);
-            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+            border-radius: 20px;
+            background: rgba(15, 23, 42, 0.88);
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28);
             backdrop-filter: blur(10px);
             margin-bottom: 1rem;
         }
 
-        .metric-card {
-            padding: 1rem 1rem;
-            border-radius: 16px;
-            background: white;
-            border: 1px solid rgba(148, 163, 184, 0.18);
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
-        }
-
         .small-muted {
-            color: #64748b;
-            font-size: 0.92rem;
+            color: #94a3b8;
+            font-size: 0.93rem;
         }
 
         div[data-testid="stMetric"] {
-            background: white;
+            background: linear-gradient(180deg, #111827 0%, #0f172a 100%);
             border: 1px solid rgba(148, 163, 184, 0.18);
             padding: 16px 16px 12px 16px;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+            border-radius: 18px;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+        }
+
+        div[data-testid="stMetric"] * {
+            color: #f8fafc !important;
         }
 
         section[data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            background: linear-gradient(180deg, #020617 0%, #0f172a 100%);
             border-right: 1px solid rgba(148, 163, 184, 0.18);
+        }
+
+        section[data-testid="stSidebar"] * {
+            color: #e5e7eb !important;
         }
 
         .stButton button {
             border-radius: 12px;
             padding: 0.55rem 1rem;
-            font-weight: 600;
+            font-weight: 700;
+            background: #2563eb;
+            color: white;
+            border: 0;
         }
 
         .stDownloadButton button {
             border-radius: 12px;
             padding: 0.55rem 1rem;
-            font-weight: 600;
+            font-weight: 700;
+            background: #0ea5e9;
+            color: white;
+            border: 0;
         }
 
-        .insight-box {
-            background: white;
-            border-radius: 16px;
-            padding: 1rem 1.1rem;
-            border: 1px solid rgba(148, 163, 184, 0.18);
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+        .stTextArea textarea,
+        .stTextInput input,
+        .stSelectbox div,
+        .stMultiSelect div,
+        .stDateInput div {
+            background-color: #0b1220 !important;
+            color: #f8fafc !important;
+            border-color: rgba(148, 163, 184, 0.28) !important;
+        }
+
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 6px;
+        }
+
+        .stTabs [data-baseweb="tab"] {
+            background: #111827;
+            color: #cbd5e1;
+            border-radius: 12px 12px 0 0;
+            padding: 10px 14px;
+            border: 1px solid rgba(148, 163, 184, 0.14);
+        }
+
+        .stTabs [aria-selected="true"] {
+            background: #1e293b !important;
+            color: #ffffff !important;
+        }
+
+        .stAlert {
+            border-radius: 14px;
         }
     </style>
     """,
@@ -96,27 +125,24 @@ st.markdown(
 )
 
 # -------------------------------------------------
-# Utility helpers
+# Helpers
 # -------------------------------------------------
-def read_csv_safely(file_obj: object) -> pd.DataFrame:
+def read_csv_safely(file_obj):
     """Read CSV robustly with fallback encodings."""
     encodings = ["latin1", "utf-8", "cp1252"]
     last_error = None
 
     for enc in encodings:
         try:
+            file_obj.seek(0)
             return pd.read_csv(file_obj, encoding=enc)
         except Exception as e:
             last_error = e
-            try:
-                file_obj.seek(0)
-            except Exception:
-                pass
 
-    raise last_error  # type: ignore[misc]
+    raise last_error
 
 
-def find_col(df: pd.DataFrame, candidates: list[str]) -> str | None:
+def find_col(df: pd.DataFrame, candidates):
     """Return the first matching column name from a list of candidates."""
     for c in candidates:
         if c in df.columns:
@@ -131,6 +157,21 @@ def money_format(value: float) -> str:
 def safe_group_sum(df: pd.DataFrame, group_col: str, value_col: str) -> pd.DataFrame:
     out = df.groupby(group_col, as_index=False)[value_col].sum()
     return out.sort_values(value_col, ascending=False)
+
+
+def apply_plot_style(fig):
+    fig.update_layout(
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="#e5e7eb"),
+        margin=dict(l=20, r=20, t=60, b=20),
+        height=430,
+        title_font=dict(size=18),
+    )
+    fig.update_xaxes(gridcolor="rgba(148,163,184,0.18)", zerolinecolor="rgba(148,163,184,0.18)")
+    fig.update_yaxes(gridcolor="rgba(148,163,184,0.18)", zerolinecolor="rgba(148,163,184,0.18)")
+    return fig
 
 
 # -------------------------------------------------
@@ -180,20 +221,23 @@ if uploaded_file is None:
 
 # Read and clean data
 df = read_csv_safely(uploaded_file)
-df.columns = [col.strip().lower().replace(" ", "_") for col in df.columns]
+df.columns = [col.strip().lower().replace(" ", "_").replace("-", "_") for col in df.columns]
 
 # Normalize common date columns if present
 for date_col in ["order_date", "ship_date", "date", "created_at"]:
     if date_col in df.columns:
         df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
 
-# Try to save to cloud database
+# Save to cloud database
 if engine is not None:
     try:
         df.to_sql("uploaded_data", engine, if_exists="replace", index=False)
         st.sidebar.success("Saved to cloud PostgreSQL")
     except Exception as e:
         st.sidebar.warning(f"Could not save to database: {e}")
+
+st.subheader("Dataset Preview")
+st.dataframe(df.head(), use_container_width=True)
 
 # -------------------------------------------------
 # Detect columns
@@ -203,7 +247,7 @@ profit_col = find_col(df, ["profit", "margin", "net_profit"])
 region_col = find_col(df, ["region", "state", "country", "location"])
 category_col = find_col(df, ["category", "segment", "department"])
 date_col = find_col(df, ["order_date", "date", "created_at", "ship_date"])
-product_col = find_col(df, ["product_name", "product", "item_name", "sku"])
+product_col = find_col(df, ["product_name", "sub_category", "subcategory", "product", "item_name", "sku"])
 
 # -------------------------------------------------
 # Sidebar filters
@@ -240,7 +284,7 @@ if date_col and pd.api.types.is_datetime64_any_dtype(df[date_col]):
             value=(min_date.date(), max_date.date()),
         )
 
-        if isinstance(date_range, tuple) and len(date_range) == 2:
+        if isinstance(date_range, (list, tuple)) and len(date_range) == 2:
             start_date, end_date = date_range
             filtered_df = filtered_df[
                 (filtered_df[date_col].dt.date >= start_date) &
@@ -344,14 +388,9 @@ with tab_charts:
                 x=region_col,
                 y=sales_col,
                 title="Total Sales by Region",
-                text_auto=".2s",
             )
-            fig_region.update_layout(
-                template="plotly_white",
-                xaxis_title="Region",
-                yaxis_title="Sales",
-                height=430,
-            )
+            apply_plot_style(fig_region)
+            fig_region.update_layout(xaxis_title="Region", yaxis_title="Sales")
             st.plotly_chart(fig_region, use_container_width=True)
         else:
             st.info("No region/sales columns found for regional sales chart.")
@@ -364,14 +403,9 @@ with tab_charts:
                 x=category_col,
                 y=profit_col,
                 title="Total Profit by Category",
-                text_auto=".2s",
             )
-            fig_category.update_layout(
-                template="plotly_white",
-                xaxis_title="Category",
-                yaxis_title="Profit",
-                height=430,
-            )
+            apply_plot_style(fig_category)
+            fig_category.update_layout(xaxis_title="Category", yaxis_title="Profit")
             st.plotly_chart(fig_category, use_container_width=True)
         else:
             st.info("No category/profit columns found for category profit chart.")
@@ -392,12 +426,8 @@ with tab_charts:
                 title="Sales Trend Over Time",
                 markers=True,
             )
-            fig_trend.update_layout(
-                template="plotly_white",
-                xaxis_title="Date",
-                yaxis_title="Sales",
-                height=450,
-            )
+            apply_plot_style(fig_trend)
+            fig_trend.update_layout(xaxis_title="Date", yaxis_title="Sales")
             st.plotly_chart(fig_trend, use_container_width=True)
         else:
             st.info("No valid dates found for trend chart.")
@@ -417,17 +447,17 @@ with tab_charts:
                 x=sales_col,
                 y=product_col,
                 orientation="h",
-                title="Top 10 Products by Sales",
-                text_auto=".2s",
+                title="Top 10 Products / Sub-categories by Sales",
             )
+            apply_plot_style(fig_products)
             fig_products.update_layout(
-                template="plotly_white",
-                yaxis={"autorange": "reversed"},
                 xaxis_title="Sales",
                 yaxis_title="Product",
-                height=450,
+                yaxis={"autorange": "reversed"},
             )
             st.plotly_chart(fig_products, use_container_width=True)
+    else:
+        st.info("No product/sub-category column found for product chart.")
 
 # -------------------------------------------------
 # SQL tab
@@ -480,7 +510,8 @@ with tab_quality:
             y="missing_count",
             title="Missing Values by Column",
         )
-        fig_missing.update_layout(template="plotly_white", height=420)
+        apply_plot_style(fig_missing)
+        fig_missing.update_layout(xaxis_title="Column", yaxis_title="Missing Values")
         st.plotly_chart(fig_missing, use_container_width=True)
     else:
         st.success("No missing values found in the dataset.")
@@ -510,6 +541,4 @@ with tab_data:
 # Footer
 # -------------------------------------------------
 st.divider()
-st.caption(
-    "Built with Python • Streamlit • Plotly • SQL • PostgreSQL • Cloud Analytics"
-)
+st.caption("Built with Python • Streamlit • Plotly • SQL • PostgreSQL • Cloud Analytics")
