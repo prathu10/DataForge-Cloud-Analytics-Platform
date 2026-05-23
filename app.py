@@ -233,7 +233,7 @@ if uploaded_file is not None:
     st.divider()
     st.subheader("Run SQL on Cloud Database")
 
-    sql_default = "SELECT * FROM uploaded_data LIMIT 10"
+    sql_default = "SELECT region, SUM(sales) AS total_sales FROM uploaded_data GROUP BY region ORDER BY total_sales DESC"
 
     query = st.text_area(
         "Write SQL query for the uploaded_data table",
